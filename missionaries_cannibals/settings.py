@@ -25,7 +25,8 @@ SECRET_KEY = "django-insecure-!&hm@08kt7b%d%5=q!3_fvh2h#5-z%r&!kplk%$ts5qc8swn$!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['missionaries-cannibals.onrender.com']
+
 
 
 
