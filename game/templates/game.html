@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missionaries and Cannibals</title>
+    <style>
+        :root {
+            --river-blue: #1e90ff;
+            --bank-green: #8fbc8f;
+            --boat-brown: #8b4513;
+            --btn-primary: #4CAF50;
+            --btn-danger: #f44336;
+            --btn-action: #2196F3;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .game-container {
+            max-width: 900px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .game-header {
+            background: linear-gradient(to right, #2c3e50, #4a6491);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .game-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .game-header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .game-board {
+            display: flex;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .river {
+            position: absolute;
+            top: 0;
+            left: 20%; /* Adjusted to ensure it fits between banks */
+            width: 60%; /* Wider to ensure visibility */
+            height: 100%;
+            background: linear-gradient(to bottom, var(--river-blue), #1e5799);
+            background-color: #1e90ff; /* Solid fallback for visibility */
+            opacity: 0.9; /* Higher opacity for better visibility */
+            z-index: 0; /* Lowest z-index to stay behind everything */
+            border-left: 3px solid #1e5799; /* Thicker borders for definition */
+            border-right: 3px solid #1e5799;
+        }
+        
+        .river::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" viewBox="0 0 100 20"><path d="M0,10 Q20,15 40,10 T80,10" stroke="rgba(255,255,255,0.6)" fill="none" stroke-width="3"/></svg>');
+            opacity: 1; /* Fully visible wave effect */
+        }
+        
+        .bank {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 2; /* Above river, below boat */
+            background-color: var(--bank-green);
+            transition: all 0.5s;
+        }
+        
+        .bank.left {
+            background: linear-gradient(to right, #5d8c5d, var(--bank-green));
+        }
+        
+        .bank.right {
+            background: linear-gradient(to left, #5d8c5d, var(--bank-green));
+        }
+        
+        .bank h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+        }
+        
+        .people-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            min-height: 200px;
+            align-items: center;
+        }
+        
+        .person {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        
+        .person:hover {
+            transform: scale(1.1);
+        }
+        
+        .missionary {
+            color: #3498db;
+        }
+        
+        .cannibal {
+            color: #e74c3c;
+        }
+        
+        .boat-container {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 150px;
+            height: 80px;
+            background-color: var(--boat-brown);
+            border-radius: 50% 50% 10px 10px;
+            z-index: 3; /* Highest z-index to stay above river and banks */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: left 1s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .boat-container.left {
+            left: 20%; /* Adjusted to align with river start */
+        }
+        
+        .boat-container.right {
+            left: 70%; /* Adjusted to align with river end, avoiding bank overlap */
+        }
+        
+        .boat-people {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .controls {
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-top: 3px solid #e9ecef;
+        }
+        
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .message.win {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .message.lose {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .passenger-controls {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .passenger-controls h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        select {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            font-size: 1rem;
+            width: 100px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button i {
+            font-size: 1.4rem;
+        }
+        
+        .btn-load {
+            background-color: var(--btn-primary);
+            color: white;
+        }
+        
+        .btn-load:hover {
+            background-color: #3e8e41;
+            transform: translateY(-2px);
+        }
+        
+        .btn-move {
+            background-color: var(--btn-action);
+            color: white;
+        }
+        
+        .btn-move:hover {
+            background-color: #0b7dda;
+            transform: translateY(-2px);
+        }
+        
+        .btn-reset {
+            background-color: var(--btn-danger);
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .game-board {
+                flex-direction: column;
+                min-height: 600px;
+            }
+            
+            .river {
+                left: 0;
+                top: 20%; /* Adjusted for better vertical centering */
+                width: 100%;
+                height: 60%; /* Increased height for visibility */
+                background: linear-gradient(to bottom, var(--river-blue), #1e5799);
+                background-color: #1e90ff; /* Fallback solid color */
+                opacity: 0.9; /* Consistent opacity */
+                z-index: 0; /* Lowest z-index */
+                border-top: 3px solid #1e5799; /* Thicker borders */
+                border-bottom: 3px solid #1e5799;
+            }
+            
+            .boat-container {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 3; /* Ensure boat stays above river */
+            }
+            
+            .boat-container.left {
+                transform: translate(-50%, -50%);
+            }
+            
+            .boat-container.right {
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Missionaries and Cannibals Puzzle</h1>
+            <p>Transport all characters safely across the river</p>
+        </div>
+        
+        <div class="game-board">
+            <div class="river"></div>
+            
+            <div class="bank left">
+                <h2>Left Bank</h2>
+                <div class="people-container">
+                    {% for i in left_missionaries %}
+                    <div class="person missionary">👨‍</div>
+                    {% endfor %}
+                    {% for i in left_cannibals %}
+                    <div class="person cannibal">👹</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="bank right">
+                <h2>Right Bank</h2>
+                <div class="people-container">
+                    {% for i in right_missionaries %}
+                    <div class="person missionary">👨‍</div>
+                    {% endfor %}
+                    {% for i in right_cannibals %}
+                    <div class="person cannibal">👹</div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="boat-container {{ boat_position }}">
+                <div class="boat-people">
+                    {% for i in boat_missionaries %}
+                    <div class="person missionary">👨‍</div>
+                    {% endfor %}
+                    {% for i in boat_cannibals %}
+                    <div class="person cannibal">👹</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="message {% if won %}win{% elif game_over %}lose{% else %}info{% endif %}">
+                {{ message }}
+            </div>
+            
+            <div class="controls-container">
+                {% if not game_over %}
+                <div class="passenger-controls">
+                    <h3>Select Passengers ({{ boat_position|capfirst }} Bank)</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="selector">
+                            <label>Missionaries:</label>
+                            <select name="missionaries" id="missionaries">
+                                {% for i in "012"|make_list %}
+                                {% if i|add:"0" <= available_missionaries %}
+                                <option value="{{ i }}">{{ i }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="selector">
+                            <label>Cannibals:</label>
+                            <select name="cannibals" id="cannibals">
+                                {% for i in "012"|make_list %}
+                                {% if i|add:"0" <= available_cannibals %}
+                                <option value="{{ i }}">{{ i }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" name="load" class="btn-load">
+                            <i class="fas fa-people-arrows"></i> Load Passengers
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="action-buttons">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="move" class="btn-move">
+                            <i class="fas fa-ship"></i> Move Boat
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+                
+                <div class="action-buttons">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" name="reset" class="btn-reset">
+                            <i class="fas fa-redo"></i> Reset Game
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="status">
+                <div>Left: {{ left_missionaries|length }}M {{ left_cannibals|length }}C</div>
+                <div>Boat: {{ boat_missionaries|length }}M {{ boat_cannibals|length }}C</div>
+                <div>Right: {{ right_missionaries|length }}M {{ right_cannibals|length }}C</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize select values
+            document.getElementById('missionaries').value = "{{ boat_missionaries|length }}";
+            document.getElementById('cannibals').value = "{{ boat_cannibals|length }}";
+        });
+    </script>
+</body>
+</html>
