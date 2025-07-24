@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Missionaries and Cannibals</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; }
+        .banks { display: flex; justify-content: space-between; }
+        .bank { 
+            border: 2px solid #333; 
+            padding: 20px; 
+            width: 45%;
+            background-color: #f0f8ff;
+        }
+        .boat { 
+            margin: 20px 0; 
+            padding: 10px;
+            background-color: #e0ffff;
+            text-align: center;
+        }
+        .controls { margin-top: 20px; }
+        button { 
+            padding: 10px 15px; 
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .win { background-color: #d4edda; color: #155724; }
+        .lose { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #cce5ff; color: #004085; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Missionaries and Cannibals Puzzle</h1>
+        
+        <div class="message {% if game.won %}win{% elif game.game_over %}lose{% else %}info{% endif %}">
+            {{ message }}
+        </div>
+        
+        <div class="banks">
+            <div class="bank">
+                <h2>Left Bank</h2>
+                <p>Missionaries: {{ game.left_bank.missionaries }}</p>
+                <p>Cannibals: {{ game.left_bank.cannibals }}</p>
+            </div>
+            
+            <div class="bank">
+                <h2>Right Bank</h2>
+                <p>Missionaries: {{ game.right_bank.missionaries }}</p>
+                <p>Cannibals: {{ game.right_bank.cannibals }}</p>
+            </div>
+        </div>
+        
+        <div class="boat">
+            <h3>Boat Position: {{ boat_side }} Bank</h3>
+            {% if not game.game_over %}
+            <p>Select passengers to move to the other side:</p>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="controls">
+            {% csrf_token %}
+            {% if not game.game_over %}
+                <button type="submit" name="move" value="1m">Move 1 Missionary</button>
+                <button type="submit" name="move" value="1c">Move 1 Cannibal</button>
+                <button type="submit" name="move" value="2m">Move 2 Missionaries</button>
+                <button type="submit" name="move" value="2c">Move 2 Cannibals</button>
+                <button type="submit" name="move" value="1m1c">Move 1M + 1C</button>
+            {% endif %}
+            <button type="submit" name="reset">Reset Game</button>
+        </form>
+    </div>
+</body>
+</html>
