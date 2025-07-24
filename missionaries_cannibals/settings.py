@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
+
 
 from pathlib import Path
 
@@ -25,8 +27,7 @@ SECRET_KEY = "django-insecure-!&hm@08kt7b%d%5=q!3_fvh2h#5-z%r&!kplk%$ts5qc8swn$!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['missionaries-cannibals.onrender.com']
-
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
 
 
